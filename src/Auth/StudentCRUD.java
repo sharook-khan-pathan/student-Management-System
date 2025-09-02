@@ -10,7 +10,7 @@ public class StudentCRUD {
 	    // Add Student
 	    public static void addStudent(Scanner sc) {
 	        System.out.print("Enter Roll No: ");
-	        int roll = sc.nextInt();   // takes roll number as integer
+	        int roll = sc.nextInt();   
             sc.nextLine();
 	        System.out.print("Enter Name: ");
 	        String name = sc.nextLine();
@@ -19,7 +19,7 @@ public class StudentCRUD {
 
 	        try (FileWriter fw = new FileWriter(FILE, true)) {
 	            fw.write(roll + "," + name + "," + pass + "\n");
-	            System.out.println("✅ Student Added Successfully!");
+	            System.out.println("Student Added Successfully!");
 	        } catch (IOException e) {
 	            System.out.println("Error adding student: " + e.getMessage());
 	        }
@@ -28,7 +28,7 @@ public class StudentCRUD {
 	    // Search Student
 	    public static void searchStudent(Scanner sc) {
 	        System.out.print("Enter Roll No to Search: ");
-	        String roll = sc.nextLine();
+	        String roll = sc.next();
 	        boolean found = false;
 
 	        try (BufferedReader br = new BufferedReader(new FileReader(FILE))) {
@@ -36,7 +36,7 @@ public class StudentCRUD {
 	            while ((line = br.readLine()) != null) {
 	                String[] data = line.split(",");
 	                if (data[0].equals(roll)) {
-	                    System.out.println("✅ Student Found: Roll: " + data[0] + ", Name: " + data[1]);
+	                    System.out.println("Student Found: Roll: " + data[0] + ", Name: " + data[1]);
 	                    found = true;
 	                    break;
 	                }
@@ -48,7 +48,7 @@ public class StudentCRUD {
 	    // Update Student
 	    public static void updateStudent(Scanner sc) {
 	        System.out.print("Enter Roll No to Update: ");
-	        String roll = sc.nextLine();
+	        String roll = sc.next();
 	        List<String> students = new ArrayList<>();
 	        boolean updated = false;
 
@@ -58,9 +58,9 @@ public class StudentCRUD {
 	                String[] data = line.split(",");
 	                if (data[0].equals(roll)) {
 	                    System.out.print("Enter New Name: ");
-	                    String newName = sc.nextLine();
+	                    String newName = sc.next();
 	                    System.out.print("Enter New Password: ");
-	                    String newPass = sc.nextLine();
+	                    String newPass = sc.next();
 	                    students.add(roll + "," + newName + "," + newPass);
 	                    updated = true;
 	                } else {
@@ -77,16 +77,16 @@ public class StudentCRUD {
 	            } catch (IOException e) {
 	                System.out.println("Error writing file: " + e.getMessage());
 	            }
-	            System.out.println("✅ Student Updated Successfully!");
+	            System.out.println("Student Updated Successfully!");
 	        } else {
-	            System.out.println("❌ Student Not Found!");
+	            System.out.println("Student Not Found!");
 	        }
 	    }
 
 	    // Delete Student
 	    public static void deleteStudent(Scanner sc) {
 	        System.out.print("Enter Roll No to Delete: ");
-	        String roll = sc.nextLine();
+	        String roll = sc.next();
 	        List<String> students = new ArrayList<>();
 	        boolean deleted = false;
 
@@ -110,9 +110,9 @@ public class StudentCRUD {
 	            } catch (IOException e) {
 	                System.out.println("Error writing file: " + e.getMessage());
 	            }
-	            System.out.println("✅ Student Deleted Successfully!");
+	            System.out.println("Student Deleted Successfully!");
 	        } else {
-	            System.out.println("❌ Student Not Found!");
+	            System.out.println("Student Not Found!");
 	        }
 	    }
 }

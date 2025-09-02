@@ -19,7 +19,7 @@ public class StudentLogin {
             while ((line = br.readLine()) != null) {
                 String[] data = line.split(",");
                 if (data[0].equals(rollNo) && data[2].equals(password)) {
-                    System.out.println("✅ Student Login Successful! Welcome " + data[1]);
+                    System.out.println("Student Login Successful! Welcome " + data[1]);
                     markAttendance(rollNo);
                     found = true;
                     break;
@@ -30,11 +30,12 @@ public class StudentLogin {
         }
 
         if (!found) {
-            System.out.println("❌ Invalid Roll No or Password");
+            System.out.println("Invalid Roll No or Password");
         }
 
         return found;
     }
+    
 
     private static void markAttendance(String rollNo) {
         try (FileWriter fw = new FileWriter("C:\\Users\\DELL\\eclipse-workspace\\StudentManagmentSystem\\src\\Auth\\attendence.txt", true)) {
