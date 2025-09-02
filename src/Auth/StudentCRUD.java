@@ -28,7 +28,7 @@ public class StudentCRUD {
 	    // Search Student
 	    public static void searchStudent(Scanner sc) {
 	        System.out.print("Enter Roll No to Search: ");
-	        String roll = sc.next();
+	        String roll = sc.nextLine();
 	        boolean found = false;
 
 	        try (BufferedReader br = new BufferedReader(new FileReader(FILE))) {
@@ -48,7 +48,7 @@ public class StudentCRUD {
 	    // Update Student
 	    public static void updateStudent(Scanner sc) {
 	        System.out.print("Enter Roll No to Update: ");
-	        String roll = sc.next();
+	        String roll = sc.nextLine();
 	        List<String> students = new ArrayList<>();
 	        boolean updated = false;
 
@@ -58,9 +58,9 @@ public class StudentCRUD {
 	                String[] data = line.split(",");
 	                if (data[0].equals(roll)) {
 	                    System.out.print("Enter New Name: ");
-	                    String newName = sc.next();
+	                    String newName = sc.nextLine();
 	                    System.out.print("Enter New Password: ");
-	                    String newPass = sc.next();
+	                    String newPass = sc.nextLine();
 	                    students.add(roll + "," + newName + "," + newPass);
 	                    updated = true;
 	                } else {
@@ -86,7 +86,7 @@ public class StudentCRUD {
 	    // Delete Student
 	    public static void deleteStudent(Scanner sc) {
 	        System.out.print("Enter Roll No to Delete: ");
-	        String roll = sc.next();
+	        String roll = sc.nextLine();
 	        List<String> students = new ArrayList<>();
 	        boolean deleted = false;
 

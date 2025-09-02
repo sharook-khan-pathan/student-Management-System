@@ -1,10 +1,10 @@
 package Auth;
 import java.util.*;
  class AdminLogin {
-
+	 	private static final String adminuser = "admin";	
+	 	private static final String adminpass = "admin123";
 	 public static boolean login() {
-		 	String adminuser = "admin";	
-		 	String adminpass = "admin123";
+
 	        Scanner sc = new Scanner(System.in);
 
 	        System.out.println("=== Admin Login ===");

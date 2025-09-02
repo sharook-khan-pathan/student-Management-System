@@ -13,11 +13,11 @@ public class TaskAssignment {
 		
 		try {
             System.out.print("Enter Task ID: ");
-            String taskId = sc.next();
+            String taskId = sc.nextLine();
             System.out.print("Enter Roll No of Student: ");
-            String rollNo = sc.next();
+            String rollNo = sc.nextLine();
             System.out.print("Enter Task Description: ");
-            String desc = sc.next();
+            String desc = sc.nextLine();
 
             try (FileWriter fw = new FileWriter(FILE, true)) {
                 fw.write(taskId + "," + rollNo + "," + desc + ",Pending\n");
@@ -34,7 +34,7 @@ public class TaskAssignment {
 	public static void viewTasks(Scanner sc) {
 		
 		System.out.print("Enter Roll.No:");
-    	String roll = sc.next();
+    	String roll = sc.nextLine();
     	
         try (BufferedReader br = new BufferedReader(new FileReader(FILE))) {
             String line;
@@ -58,12 +58,12 @@ public class TaskAssignment {
 	//Update Task Status
     public static void updateTaskStatus(Scanner sc) {
     	System.out.print("Enter Roll.No:");
-    	String roll1 = sc.next();
+    	String roll1 = sc.nextLine();
         try {
             System.out.print("Enter Task ID to update: ");
-            String taskId = sc.next();
+            String taskId = sc.nextLine();
             System.out.print("Enter New Status (Pending/In Progress/Completed): ");
-            String newStatus = sc.next();
+            String newStatus = sc.nextLine();
 
             File inputFile = new File(FILE);
             File tempFile = new File("tasks_temp.txt");
