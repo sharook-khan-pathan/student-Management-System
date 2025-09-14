@@ -1,8 +1,9 @@
 package Auth;
 import java.util.Scanner;
+import java.sql.Connection;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassNotFoundException {
         Scanner sc = new Scanner(System.in);
 
         while (true) {
@@ -23,12 +24,12 @@ public class Main {
             switch (choice) {
                 case 1 -> {
                     if (AdminLogin.login()) {
-                        AdminMenu.show(sc);   // ✅ now calls a separate class
+                        AdminMenu.show(sc);   //  now calls a separate class
                     }
                 }
                 case 2 -> {
                     if (StudentLogin.login(sc)) {
-                        StudentMenu.show(sc); // ✅ now calls a separate class
+                        StudentMenu.show(sc); //  now calls a separate class
                     }
                 }
                 case 0 -> {

@@ -26,9 +26,9 @@ public class StudentMenu {
                 case 1 -> TaskAssignment.viewTasks(sc);
                 case 2 -> TaskAssignment.updateTaskStatus(sc);
                 case 3 -> {
-                    System.out.print("Enter your Roll No: ");
-                    String roll = sc.nextLine();
-                    MarksManager.viewMarksheet(roll);
+ //                   System.out.print("Enter your Roll No: ");
+ //                   String roll = sc.nextLine();
+                    MarksManager.viewMarksheet(sc);
                 }
                 case 4 -> AnnouncementManager.viewAnnouncements();
                 case 0 -> {

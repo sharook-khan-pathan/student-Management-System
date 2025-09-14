@@ -3,7 +3,7 @@ package Auth;
 import java.util.Scanner;
 
 public class AdminMenu {
-    public static void show(Scanner sc) {
+    public static void show(Scanner sc) throws ClassNotFoundException {
         int ch;
 
         while (true) {
@@ -36,7 +36,7 @@ public class AdminMenu {
                 case 5 -> TaskAssignment.addAssignment(sc);
                 case 6 -> TaskAssignment.viewTasks(sc);
                 case 7 -> MarksManager.enterMarks(sc);
-                case 8 -> MarksManager.viewAllMarks();
+                case 8 -> MarksManager.viewMarksheet(sc);
                 case 9 -> AnnouncementManager.postAnnouncement(sc);
                 case 10 -> StudentLogin.viewAttendance(sc);
                 case 0 -> {

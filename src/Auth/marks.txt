@@ -1,2 +1,2 @@
-123,maths,78,B
-123,english,98,A+
+
+CREATE TABLE attendance (att_id     NUMBER PRIMARY KEY, rollno     NUMBER NOT NULL, login_date DATE DEFAULT SYSDATE,status     VARCHAR2(10) DEFAULT 'Present',CONSTRAINT fk_attendance_student    FOREIGN KEY (rollno) REFERENCES students(rollno));

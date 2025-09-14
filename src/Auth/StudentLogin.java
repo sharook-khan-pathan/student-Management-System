@@ -1,110 +1,159 @@
 package Auth;
 
-import java.io.*;
-import java.time.LocalDate;
-import java.util.Scanner;
 
+import java.util.Scanner;
+import java.sql.*;
 public class StudentLogin {
 
-    public static boolean login(Scanner sc) {
-        System.out.print("Enter Roll No: ");
-        String rollNo = sc.nextLine();
+	// ✅ Student login
+	public static boolean login(Scanner sc) {
+	    System.out.print("Enter Roll No: ");
+	    String rollStr = sc.nextLine().trim();
 
-        System.out.print("Enter Password: ");
-        String password = sc.nextLine();
+	    System.out.print("Enter Password: ");
+	    String password = sc.nextLine().trim();
 
-        boolean found = false;
-        try (BufferedReader br = new BufferedReader(new FileReader("C:\\\\Users\\\\DELL\\\\eclipse-workspace\\\\StudentManagmentSystem\\\\src\\\\Auth\\\\students.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(",");
-                if (data[0].equals(rollNo) && data[2].equals(password)) {
-                    System.out.println("Student Login Successful! Welcome " + data[1]);
-                    markAttendance(rollNo);
-                    found = true;
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+	    try {
+	        int rollNo = Integer.parseInt(rollStr); // ROLLNO is NUMBER
 
-        if (!found) {
-            System.out.println("Invalid Roll No or Password");
-        }
+	        Class.forName("oracle.jdbc.driver.OracleDriver");
 
-        return found;
-    }
+	        try (Connection conn = DriverManager.getConnection(
+	                     "jdbc:oracle:thin:@localhost:1521:xe", "system", "1234");
+	             PreparedStatement ps = conn.prepareStatement(
+	                     "SELECT name FROM student WHERE rollno = ? AND password = ?")) {
+
+	            ps.setInt(1, rollNo);
+	            ps.setString(2, password);
+
+	            ResultSet rs = ps.executeQuery();
+
+	            if (rs.next()) {
+	                String name = rs.getString("name");
+	                System.out.println("✅ Student Login Successful! Welcome " + name);
+
+	                // ✅ Call attendance with int
+	                markAttendance(rollNo);
+
+	                return true;
+	            } else {
+	                System.out.println("❌ Invalid Roll No or Password");
+	                return false;
+	            }
+	        }
+
+	    } catch (NumberFormatException e) {
+	        System.out.println("⚠ Roll No must be numeric!");
+	        return false;
+	    } catch (Exception e) {
+	        System.out.println("⚠ Error during login: " + e.getMessage());
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
     
 
-    private static void markAttendance(String rollNo) {
-    	String today = LocalDate.now().toString();
-        boolean alreadyMarked = false;
+	// ✅ Attendance function takes int
+	// 🔹 Mark Attendance (one entry per student per day)
+	private static void markAttendance(int rollNo) {
+	    try {
+	        Class.forName("oracle.jdbc.driver.OracleDriver");
+	        try (Connection conn = DriverManager.getConnection(
+	                     "jdbc:oracle:thin:@localhost:1521:xe", "system", "1234")) {
 
-        // Step 1: Check if already marked for today
-        try (BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\DELL\\eclipse-workspace\\StudentManagmentSystem\\src\\Auth\\assignment.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 3) {
-                    String fileRoll = parts[0];
-                    String fileDate = parts[1];
-                    if (fileRoll.equals(rollNo) && fileDate.equals(today)) {
-                        alreadyMarked = true;
-                        break;
-                    }
-                }
-            }
-        } catch (FileNotFoundException e) {
-            // file not yet created → ok
-        } catch (IOException e) {
-            System.out.println("Error reading attendance: " + e.getMessage());
-        }
+	            // Step 1: Check if attendance already exists for today
+	            String checkSql = "SELECT 1 FROM attendance " +
+	                              "WHERE rollno = ? AND TRUNC(login_date) = TRUNC(SYSDATE)";
+	            try (PreparedStatement checkPs = conn.prepareStatement(checkSql)) {
+	                checkPs.setInt(1, rollNo);
+	                ResultSet rs = checkPs.executeQuery();
 
-        // Step 2: If not already marked, write new entry
-        if (!alreadyMarked) {
-            try (FileWriter fw = new FileWriter("aC:\\Users\\DELL\\eclipse-workspace\\StudentManagmentSystem\\src\\Auth\\assignment.txt", true)) {
-                fw.write(rollNo + "," + today + ",Present\n");
-                System.out.println("Attendance marked for roll " + rollNo + " on " + today);
-            } catch (IOException e) {
-                System.out.println("Error writing attendance: " + e.getMessage());
-            }
-        } else {
-            System.out.println("Attendance already marked for roll " + rollNo + " today.");
-        }
-    }
-    
-    public static void viewAttendance(Scanner sc) {
-        System.out.print("Enter Roll No to view (or press Enter for all): ");
-        String input = sc.nextLine().trim();
+	                if (rs.next()) {
+	                    System.out.println("ℹ Attendance already marked for Roll No: " + rollNo + " today.");
+	                    return; // ✅ skip inserting again
+	                }
+	            }
 
-        try (BufferedReader br = new BufferedReader(new FileReader("attendance.txt"))) {
-            String line;
-            boolean found = false;
+	            // Step 2: Insert new record if not already marked
+	            String insertSql = "INSERT INTO attendance (rollno, login_date, status) VALUES (?, SYSDATE, 'Present')";
+	            try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+	                ps.setInt(1, rollNo);
+	                ps.executeUpdate();
+	                System.out.println("📌 Attendance marked for Roll No: " + rollNo);
+	            }
 
-            System.out.println("\n--- Attendance Records ---");
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 3) {
-                    String rollNo = parts[0];
-                    String date = parts[1];
-                    String status = parts[2];
+	        }
+	    } catch (Exception e) {
+	        System.out.println("⚠ Error marking attendance: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	}
 
-                    // Show all or only the requested roll no
-                    if (input.isEmpty() || rollNo.equals(input)) {
-                        System.out.println("Roll: " + rollNo + " | Date: " + date + " | Status: " + status);
-                        found = true;
-                    }
-                }
-            }
+	
+	// 🔹 View Attendance (all or by roll number)
+	public static void viewAttendance(Scanner sc) {
+	    System.out.print("Enter Roll No to view (or press Enter for all): ");
+	    String input = sc.nextLine().trim();
 
-            if (!found) {
-                System.out.println("No attendance records found.");
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading attendance: " + e.getMessage());
-        }
-    }
+	    try {
+	        Class.forName("oracle.jdbc.driver.OracleDriver");
+	        try (Connection conn = DriverManager.getConnection(
+	                     "jdbc:oracle:thin:@localhost:1521:xe", "system", "1234")) {
+
+	            String sql;
+	            PreparedStatement ps;
+
+	            if (input.isEmpty()) {
+	                // Show all students' attendance
+	                sql = "SELECT a.rollno, s.name, a.login_date, a.status " +
+	                      "FROM attendance a " +
+	                      "JOIN student s ON a.rollno = s.rollno " +
+	                      "ORDER BY a.login_date DESC";
+	                ps = conn.prepareStatement(sql);
+	            } else {
+	                // Show attendance for a particular student
+	                sql = "SELECT a.rollno, s.name, a.login_date, a.status " +
+	                      "FROM attendance a " +
+	                      "JOIN student s ON a.rollno = s.rollno " +
+	                      "WHERE a.rollno = ? " +
+	                      "ORDER BY a.login_date DESC";
+	                ps = conn.prepareStatement(sql);
+	                ps.setInt(1, Integer.parseInt(input));
+	            }
+
+	            ResultSet rs = ps.executeQuery();
+
+	            System.out.println("\n--- 📋 Attendance Records ---");
+	            boolean found = false;
+
+	            while (rs.next()) {
+	                found = true;
+	                int rollNo = rs.getInt("rollno");
+	                String name = rs.getString("name");
+	                String date = rs.getDate("login_date").toString();
+	                String status = rs.getString("status");
+
+	                System.out.println("Roll: " + rollNo +
+	                                   " | Name: " + name +
+	                                   " | Date: " + date +
+	                                   " | Status: " + status);
+	            }
+
+	            if (!found) {
+	                System.out.println("⚠ No attendance records found.");
+	            }
+
+	            rs.close();
+	            ps.close();
+
+	        }
+	    } catch (NumberFormatException e) {
+	        System.out.println("⚠ Roll No must be numeric if entered.");
+	    } catch (Exception e) {
+	        System.out.println("⚠ Error reading attendance: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	}
 
 }
 

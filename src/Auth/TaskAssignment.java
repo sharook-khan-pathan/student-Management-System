@@ -2,6 +2,7 @@ package Auth;
 
 import java.io.*;
 import java.util.*;
+import java.sql.*;
 
 public class TaskAssignment {
 	
@@ -10,95 +11,169 @@ public class TaskAssignment {
 	//Admin Task Assignment
 	public static void addAssignment(Scanner sc) {
 		
-		
 		try {
-            System.out.print("Enter Task ID: ");
-            String taskId = sc.nextLine();
-            System.out.print("Enter Roll No of Student: ");
-            String rollNo = sc.nextLine();
-            System.out.print("Enter Task Description: ");
-            String desc = sc.nextLine();
+	        System.out.print("Enter Task ID: ");
+	        String taskId = sc.nextLine().trim(); // TASKID is VARCHAR2(5)
 
-            try (FileWriter fw = new FileWriter(FILE, true)) {
-                fw.write(taskId + "," + rollNo + "," + desc + ",Pending\n");
-            }
+	        System.out.print("Enter Roll No of Student: ");
+	        int rollNo = Integer.parseInt(sc.nextLine().trim()); // ROLLNO is NUMBER
 
-            System.out.println("Task Assigned Successfully to Roll No: " + rollNo);
-        } 
+	        System.out.print("Enter Task Description: ");
+	        String desc = sc.nextLine();
+
+	        String status = "Pending"; // default status
+
+	        Class.forName("oracle.jdbc.driver.OracleDriver");
+
+	        try (Connection conn = DriverManager.getConnection(
+	                    "jdbc:oracle:thin:@localhost:1521:xe", "system", "1234")) {
+
+	            // Step 1: Check if student exists
+	            String checkSql = "SELECT 1 FROM student WHERE rollno = ?";
+	            try (PreparedStatement checkPs = conn.prepareStatement(checkSql)) {
+	                checkPs.setInt(1, rollNo);
+	                ResultSet rs = checkPs.executeQuery();
+
+	                if (!rs.next()) {
+	                    System.out.println("❌ Roll No " + rollNo + " does not exist in students table!");
+	                    return; // stop here
+	                }
+	            }
+
+	            // Step 2: Assign task
+	            String insertSql = "INSERT INTO task (taskid, rollno, description, status) VALUES (?, ?, ?, ?)";
+	            try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+	                ps.setString(1, taskId);   // TASKID is VARCHAR2(5)
+	                ps.setInt(2, rollNo);      // ROLLNO is NUMBER
+	                ps.setString(3, desc);     // DESCRIPTION is VARCHAR2(10)
+	                ps.setString(4, status);   // STATUS is VARCHAR2(10)
+
+	                int rows = ps.executeUpdate();
+	                if (rows > 0) {
+	                    System.out.println("✅ Task Assigned Successfully to Roll No: " + rollNo);
+	                } else {
+	                    System.out.println("❌ Failed to assign task!");
+	                }
+	            }
+	        }
+
+	    } 
+		catch (NumberFormatException e) {
+	        System.out.println("⚠ Roll No must be a number!");
+	    } 
 		catch (Exception e) {
-            System.out.println("Error assigning task: " + e.getMessage());
-        }
+	        System.out.println("⚠ Error assigning task: " + e.getMessage());
+	        e.printStackTrace();
+	    }
 		
 	}
+	
+	// Admin View All Tasks
+//	public static void viewAllTasks() {
+//	    try {
+//	        Class.forName("oracle.jdbc.driver.OracleDriver");
+//	        try (Connection conn = DriverManager.getConnection(
+//	                    "jdbc:oracle:thin:@localhost:1521:xe", "system", "1234");
+//	             PreparedStatement ps = conn.prepareStatement(
+//	                    "SELECT taskid, rollno, description, status FROM task");
+//	             ResultSet rs = ps.executeQuery()) {
+//
+//	            System.out.println("\n--- 📋 All Assigned Tasks ---");
+//	            boolean found = false;
+//	            while (rs.next()) {
+//	                found = true;
+//	                System.out.println("Task ID    : " + rs.getString("taskid"));
+//	                System.out.println("Roll No    : " + rs.getInt("rollno"));
+//	                System.out.println("Description: " + rs.getString("description"));
+//	                System.out.println("Status     : " + rs.getString("status"));
+//	                System.out.println("---------------------------");
+//	            }
+//
+//	            if (!found) {
+//	                System.out.println("⚠ No tasks assigned yet.");
+//	            }
+//
+//	        }
+//	    } catch (Exception e) {
+//	        System.out.println("⚠ Error fetching tasks: " + e.getMessage());
+//	        e.printStackTrace();
+//	    }
+//	}
+
 	//Student View Task
 	public static void viewTasks(Scanner sc) {
 		
-		System.out.print("Enter Roll.No:");
-    	String roll = sc.nextLine();
-    	
-        try (BufferedReader br = new BufferedReader(new FileReader(FILE))) {
-            String line;
-            boolean found = false;
-            System.out.println(" Your Tasks:");
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(",");
-                if (data[1].equals(roll)) {
-                    System.out.println("Task ID: " + data[0] + " | " + "Description: " + data[2] + " | " + "Status: " + data[3]);
-                    found = true;
-                }
-            }
-            if (!found) {
-                System.out.println(" No tasks assigned yet.");
-            }
-        } catch (IOException e) {
-            System.out.println(" Error while reading tasks: " + e.getMessage());
-        }
+		System.out.print("Enter Student Roll No: ");
+	    int rollNo = Integer.parseInt(sc.nextLine().trim());
+
+	    try {
+	        Class.forName("oracle.jdbc.driver.OracleDriver");
+	        try (Connection conn = DriverManager.getConnection(
+	                    "jdbc:oracle:thin:@localhost:1521:xe", "system", "1234");
+	             PreparedStatement ps = conn.prepareStatement(
+	                    "SELECT taskid, description, status FROM task WHERE rollno = ?")) {
+
+	            ps.setInt(1, rollNo);
+	            ResultSet rs = ps.executeQuery();
+
+	            System.out.println("\n--- 📋 Tasks for Student Roll No: " + rollNo + " ---");
+	            boolean found = false;
+	            while (rs.next()) {
+	                found = true;
+	                System.out.println("Task ID    : " + rs.getString("taskid"));
+	                System.out.println("Description: " + rs.getString("description"));
+	                System.out.println("Status     : " + rs.getString("status"));
+	                System.out.println("---------------------------");
+	            }
+
+	            if (!found) {
+	                System.out.println("⚠ No tasks found for this student.");
+	            }
+
+	        }
+	    } catch (Exception e) {
+	        System.out.println("⚠ Error fetching tasks: " + e.getMessage());
+	        e.printStackTrace();
+	    }
 	}
 	
 	//Update Task Status
-    public static void updateTaskStatus(Scanner sc) {
-    	System.out.print("Enter Roll.No:");
-    	String roll1 = sc.nextLine();
-        try {
-            System.out.print("Enter Task ID to update: ");
-            String taskId = sc.nextLine();
-            System.out.print("Enter New Status (Pending/In Progress/Completed): ");
-            String newStatus = sc.nextLine();
+	
+	// 🔹 Update Task Status in DB
+	public static void updateTaskStatus(Scanner sc) {
+	    System.out.print("Enter Roll No: ");
+	    int rollNo = Integer.parseInt(sc.nextLine().trim());
 
-            File inputFile = new File(FILE);
-            File tempFile = new File("tasks_temp.txt");
+	    System.out.print("Enter Task ID to update: ");
+	    String taskId = sc.nextLine().trim();
 
-            try (BufferedReader br = new BufferedReader(new FileReader(inputFile));
-                 FileWriter fw = new FileWriter(tempFile)) {
+	    System.out.print("Enter New Status (Pending/In Progress/Completed): ");
+	    String newStatus = sc.nextLine().trim();
 
-                String line;
-                boolean updated = false;
+	    try {
+	        Class.forName("oracle.jdbc.driver.OracleDriver");
+	        try (Connection conn = DriverManager.getConnection(
+	                     "jdbc:oracle:thin:@localhost:1521:xe", "system", "1234");
+	             PreparedStatement ps = conn.prepareStatement(
+	                     "UPDATE task SET status = ? WHERE taskid = ? AND rollno = ?")) {
 
-                while ((line = br.readLine()) != null) {
-                    String[] data = line.split(",");
-                    if (data[0].equals(taskId) && data[1].equals(roll1)) {
-                        fw.write(data[0] + "," + data[1] + "," + data[2] + "," + newStatus + "\n");
-                        updated = true;
-                    } else {
-                        fw.write(line + "\n");
-                    }
-                }
+	            ps.setString(1, newStatus);
+	            ps.setString(2, taskId);
+	            ps.setInt(3, rollNo);
 
-                if (updated) {
-                    System.out.println("Task status updated successfully!");
-                } else {
-                    System.out.println("Task not found for your Roll No.");
-                }
-            }
+	            int rowsUpdated = ps.executeUpdate();
 
-           
-            inputFile.delete();
-            tempFile.renameTo(inputFile);
-
-        } catch (IOException e) {
-            System.out.println("Error while updating task: " + e.getMessage());
-        }
-    }
+	            if (rowsUpdated > 0) {
+	                System.out.println("✅ Task status updated successfully!");
+	            } else {
+	                System.out.println("❌ Task not found for your Roll No.");
+	            }
+	        }
+	    } catch (Exception e) {
+	        System.out.println("⚠ Error while updating task: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	}
 }
 
 	
